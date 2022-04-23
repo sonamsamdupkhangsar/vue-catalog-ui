@@ -13,7 +13,7 @@ const router = new VueRouter({
     { path: '/implicit/callback', component: Auth.handleCallback() },        
   ]
 })
-const vueUrl = 'http://localhost:8080'
+const vueUrl = 'https://sonamsamdupkhangsar.github.io/vue-catalog-ui/'
 
 Vue.use(VueRouter)
 console.log('issuer: ', process.env)
