@@ -13,7 +13,7 @@ const router = new VueRouter({
     { path: '/implicit/callback', component: Auth.handleCallback() },        
   ]
 })
-const vueUrl = 'https://sonamsamdupkhangsar.github.io/vue-catalog-ui/'
+const vueUrl = 'https://sonamsamdupkhangsar.github.io/vue-catalog-ui'
 
 Vue.use(VueRouter)
 console.log('issuer: ', process.env)
