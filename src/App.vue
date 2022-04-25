@@ -164,7 +164,7 @@ export default {
       await this.isAuthenticated();
 
       // Navigate back to home
-      //  this.$router.push({ path: "/" });
+       // this.$router.push({ path: "/" });
     },
 
     activateTab(tabIndex, appId, envId) {

@@ -13,14 +13,15 @@ const router = new VueRouter({
     { path: '/implicit/callback', component: Auth.handleCallback() },        
   ]
 })
-const vueUrl = 'https://sonamsamdupkhangsar.github.io/vue-catalog-ui'
+//const vueUrl = 'https://sonamsamdupkhangsar.github.io/vue-catalog-ui'
+//const vueUrl = "http://localhost:8080"
 
 Vue.use(VueRouter)
 console.log('issuer: ', process.env)
 Vue.use(Auth, {
   issuer: 'https://dev-975443.okta.com/oauth2/default',
   clientId: '0oasdq16pWdVhJl9W4x6',  
-  redirectUri: vueUrl + '/implicit/callback', // Handle the response from Okta and store the returned tokens.
+  redirectUri: window.location.origin  + '/implicit/callback', // Handle the response from Okta and store the returned tokens.
   scopes: ['openid', 'profile', 'email'],
   pkce: true 
 })
