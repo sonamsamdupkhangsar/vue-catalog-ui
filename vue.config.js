@@ -3,5 +3,5 @@ module.exports = {
     "vuetify"
   ],
   runtimeCompiler: true,
-  publicPath: '/vue-catalog-ui/'
+  publicPath: 'https://sonamsamdupkhangsar.github.io/vue-catalog-ui/'
 }
