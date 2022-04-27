@@ -16,9 +16,9 @@ COPY . .
 ARG NPM_TOKEN
 
 # Configure NPM registry and install modules
-#RUN npm config set @sonamsamdupkhangsar:registry=https://npm.pkg.github.com && \
-#    npm config set //npm.pkg.github.com/:_authToken <TOKEN> && \
-#    npm ci --quiet
+RUN npm config set @sonamsamdupkhangsar:registry=https://npm.pkg.github.com && \
+    npm config set //npm.pkg.github.com/:_authToken $PERSONAL_ACCESS_TOKEN && \
+    npm ci --quiet
     
 # build app for production with minification
 RUN NODE_ENV=production npm run build
