@@ -4,4 +4,5 @@ module.exports = {
   ],
   runtimeCompiler: true,
   //publicPath: '/vue-catalog-ui/'
+  
 }

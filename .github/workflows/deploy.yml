@@ -27,6 +27,7 @@ jobs:
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
+          build-args: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
           push: true
           tags: ghcr.io/${{github.repository}}:latest
           secrets: |
@@ -48,6 +49,5 @@ jobs:
             --set "image.repository=ghcr.io/${{github.repository}}" \
             --set "image.tag=latest" \
             --set "project=$PROJECT_NAME" \
-            --set "secretenvs[0].name=CLIENT_ID" --set "secretenvs[0].value="${{ secrets.POSTGRES_SECRET_FILE }}" \
              $PROJECT_NAME \
             sonam/mychart -f values-backend.yaml --version 0.1.14 --namespace=backend
