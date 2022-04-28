@@ -26,3 +26,5 @@ RUN NODE_ENV=production npm run build
 EXPOSE 8080
 
 CMD ["npm", "start"]
+
+LABEL org.opencontainers.image.source https://github.com/sonamsamdupkhangsar/vue-catalog-ui
