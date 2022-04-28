@@ -27,7 +27,7 @@ jobs:
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
-          build-args: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          build-args: PERSONAL_ACCESS_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
           push: true
           tags: ghcr.io/${{github.repository}}:latest
           secrets: |
