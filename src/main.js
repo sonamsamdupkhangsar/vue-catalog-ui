@@ -24,7 +24,7 @@ Vue.use(Auth, {
   issuer: process.env.VUE_APP_ISSUER,
   //clientId: '0oasdq16pWdVhJl9W4x6',  
   clientId: process.env.VUE_APP_CLIENT_ID,  
-  redirectUri: vueUrl + '/implicit/callback', // Handle the response from Okta and store the returned tokens.
+  redirectUri: process.env.VUE_APP_HOST_URL + '/implicit/callback', // Handle the response from Okta and store the returned tokens.
   scopes: ['openid', 'profile', 'email'],
   pkce: true 
 })
