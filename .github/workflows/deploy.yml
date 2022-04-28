@@ -27,11 +27,11 @@ jobs:
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
-          build-args: PERSONAL_ACCESS_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          build-args: NPM_TOKEN=${{ secrets.NPM_TOKEN }}
           push: true
           tags: ghcr.io/${{github.repository}}:latest
           secrets: |
-            GIT_AUTH_TOKEN=${{ secrets.PERSONAL_ACCESS_TOKEN }}
+            GIT_AUTH_TOKEN=${{ secrets.NPM_TOKEN }}
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
