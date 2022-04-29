@@ -105,7 +105,7 @@ export default {
     isAdmin: false,
     appId: "",
     envId: "",
-    serviceUrl: "https://catalog-rest-service.sonam.cloud"    
+    serviceUrl: process.env.VUE_APP_REST_SERVICE
   }),
   async created() {
     console.log("created serviceUrl: ", this.serviceUrl);
