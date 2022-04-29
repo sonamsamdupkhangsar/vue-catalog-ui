@@ -505,7 +505,7 @@ export default {
                console.log("request user to login")
                this.$emit('login')
             }
-          this.environmentTypes = response.data;
+          this.environmentTypes = response.data.split('\n');
           
           console.log(
             "got environmentTypes response, length: ",
