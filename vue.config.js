@@ -4,5 +4,7 @@ module.exports = {
   ],
   runtimeCompiler: true,
   //publicPath: '/vue-catalog-ui/'
-  
+  devServer: {
+    port: 8082
+  }
 }

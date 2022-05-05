@@ -309,24 +309,13 @@
                                       ></v-text-field>
                                     </v-col>
                                   </v-row>
+                                  
                                   <v-row>
                                     <v-col>
-                                      <v-text-field
-                                        v-model="service.restMethod"
-                                        label="rest method"
-                                        :counter="1024"
-                                      ></v-text-field>
+                                      <service-endpoint :service="service"  :serviceUrl="serviceUrl"></service-endpoint>
                                     </v-col>
                                   </v-row>
-                                  <v-row>
-                                    <v-col>
-                                      <v-text-field
-                                        v-model="service.endpoint"
-                                        label="endpoint"
-                                        :counter="1024"
-                                      ></v-text-field>
-                                    </v-col>
-                                  </v-row>
+                                 
                                   <v-row>
                                     <v-col>
                                       <v-checkbox
@@ -652,8 +641,10 @@
 </template>
 <script>
 import axios from "axios";
+import ServiceEndpoint from './ServiceEndpoint.vue';
 
 export default {
+  components: { ServiceEndpoint },
   props: ["serviceUrl"],
   data() {
     return {     
