@@ -1295,7 +1295,7 @@ export default {
       try {
         this.submitting = true;
         axios
-          .post(this.serviceUrl + "/services/" + service.id)
+          .delete(this.serviceUrl + "/services/" + service.id)
           .then((response) => {
             console.log("response: ", response);
 

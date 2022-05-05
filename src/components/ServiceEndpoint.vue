@@ -1,29 +1,48 @@
 <template>
   <v-container>
-       <v-expansion-panel-header>Service Endpoint <v-spacer />
+  Service Endpoints <v-spacer />
                           <div class="text-center">
                             <v-btn
                               rounded
                               color="primary"
                               dark
-                              v-on:click="addNewEndpointForm()"                            
+                              v-on:click="addNewEndpointForm()"
+                            :disabled="newEndpointFormDisabled"                            
                             >
                            Create New Endpoint
                             </v-btn>
                           </div>
-                        </v-expansion-panel-header>
+                    
        <v-expansion-panel-content>
-                          <v-expansion-panels v-model="serviceEndpoints" multiple>
+                          <v-expansion-panels v-model="count" >
                             <v-expansion-panel
                               v-for="serviceEndpoint in serviceEndpoints"
                               :key="serviceEndpoint.id"
                             >
-                              <v-expansion-panel-header
-                                >{{ service.name }}
+                              <v-expansion-panel-header>{{ serviceEndpoint.name }}
                               </v-expansion-panel-header>
                               <v-expansion-panel-content>
                                 <v-list-item-content>
-     <v-row>
+                                    <v-row>
+                                    <v-col>
+                                      <v-text-field
+                                        v-model="serviceEndpoint.id"
+                                        label="id"
+                                        readonly
+                                        :counter="36"
+                                      ></v-text-field>
+                                    </v-col>
+                                  </v-row> 
+                                           <v-row>
+                                    <v-col>
+                                      <v-text-field
+                                        v-model="serviceEndpoint.name"
+                                        label="name"                                        
+                                        :counter="100"
+                                      ></v-text-field>
+                                    </v-col>
+                                  </v-row>                                                 
+                                    <v-row>
                                     <v-col>
                                       <v-text-field
                                         v-model="serviceEndpoint.description"
@@ -50,28 +69,25 @@
                                       ></v-text-field>
                                     </v-col>
                                   </v-row>
-                                  <v-row>
+                                 
+                                   <v-row>
                                     <v-col>
-                                      <v-checkbox
-                                        v-model="serviceEndpoint.accessTokenRequired"
-                                        label="Access token required"
-                                      ></v-checkbox>
-                                    </v-col>
-                                  </v-row>
-                                  <v-row>
-                                    <v-col>
-                                      <v-checkbox
-                                        v-model="serviceEndpoint.pingIt"
-                                        label="ping it"
-                                      ></v-checkbox>
-                                    </v-col>
-                                  </v-row>
-                                  <v-row>
-                                    <v-col>
-                                      <v-checkbox
-                                        v-model="serviceEndpoint.healthEndpoint"
-                                        label="Health endpoint"
-                                      ></v-checkbox>
+                                      <v-btn
+                                        v-on:click="
+                                          updateServiceEndpoint($event, serviceEndpoint)
+                                        "
+                                        :loading="updatingServiceEndpoint"
+                                        class="mr-4"
+                                      >
+                                        Update Endpoint
+                                      </v-btn>
+                                      <v-btn
+                                        v-on:click="deleteEndpoint(serviceEndpoint)"
+                                        :loading="updatingServiceEndpoint"
+                                        class="mr-4"
+                                      >
+                                        Delete
+                                      </v-btn>
                                     </v-col>
                                   </v-row>
                                      </v-list-item-content>
@@ -94,12 +110,14 @@ import axios from 'axios'
     data() {
       return {
         msg: "hello people",
+        count: 0,
+        newEndpointFormDisabled: false,
+        updatingServiceEndpoint: false,
         loading: false,       
         tab: '',
+        lastNotSaved: false,
         serviceEndpointCount: 0,        
-       // service: '',
-        serviceEndpoints: [],
-        
+        serviceEndpoints: [],        
         selectedServiceEndpoint : {
         id: "",
         name: "",
@@ -110,7 +128,6 @@ import axios from 'axios'
         pingIt: false,
         healthEndpoint: false
       },
- //this.panel = [this.services.length];
         snackbar: false,
         snackbarMessage: '',
       }
@@ -130,9 +147,11 @@ import axios from 'axios'
                 }
 
                 this.serviceEndpoints = response.data;
+                this.count = this.serviceEndpoints.length
                 console.log(
                 "got serviceEndpoints response, totalElements: ",
                 response.data.length
+                
                 );
             });
         } catch (e) {
@@ -143,15 +162,103 @@ import axios from 'axios'
     addNewEndpointForm() {
       let serviceEndpoint = {
         id: "",
+        serviceId: this.service.id,
         name: "",
         description: "",
         restMethod: "",
-        endpoint: "",
-        accessTokenRequired: false,
-        pingIt: false,
-        healthEndpoint: false
+        endpoint: ""      
       }
       this.serviceEndpoints.push(serviceEndpoint)
+      this.newEndpointFormDisabled = true
+      console.log("added new ndpoint to serviceEndpoints: ", this.serviceEndpoints.length)
+      this.count = this.serviceEndpoints.length
+    },
+
+    updateServiceEndpoint: function(event, serviceEndpoint) {
+      console.log(
+        "update serviceEndpoint, event: ",
+        event,
+        " target: ",
+        event.target,
+        ", serviceEndpoint: ",
+        serviceEndpoint
+      );
+      this.updatingServiceEndpoint = true
+
+      let isNewService = serviceEndpoint.id;
+      try {
+        this.submitting = true;
+        console.log("send serviceEndpoint body: ", serviceEndpoint)
+        axios
+          .post(this.serviceUrl + "/serviceendpoint", serviceEndpoint)
+          .then((response) => {
+            this.submitting = false;
+
+            if (response.status == 401) {
+              console.log("request user to login");
+              this.$emit("login");
+            }
+
+            //Then injecting the result to datatable parameters.
+            serviceEndpoint = response.data;
+            for (let i = 0; i < this.serviceEndpoints.length; i++) {
+              if (this.serviceEndpoints[i].id == "") {
+                this.serviceEndpoints[i] = serviceEndpoint;
+                console.log(
+                  "break after assigning new serviceEndpoint to array serviceEndpoints"
+                );
+                break;
+              }
+              console.log("should not execute after break");
+            }
+            console.log("got serviceEndpoint update response ", serviceEndpoint);
+            this.snackbarMessage = "ServiceEndpoint updated";
+            this.snackbar = true;
+            if (isNewService == "") {              
+              this.newEndpointFormDisabled = false
+            }
+            this.updatingServiceEndpoint = false
+
+            //this.newServiceFormDisabled = false
+            // this.getServices(service.applicationId)
+          });
+      } catch (e) {
+        console.error(` failed to update service, Errors! ${e}`);
+      }
+    },
+
+    deleteEndpoint: function(serviceEndpoint) {
+      console.log("delete service ", serviceEndpoint.id);
+
+      if (serviceEndpoint.id == "") {
+          this.serviceEndpoints.pop(serviceEndpoint)  
+          console.log("just pop the serviceEndpoint that is not in db")
+          this.newEndpointFormDisabled = false
+      }
+      else {
+      try {
+        this.submitting = true;
+        axios
+          .delete(this.serviceUrl + "/serviceendpoint/" + serviceEndpoint.id)
+          .then((response) => {
+            console.log("response: ", response);
+
+            if (response.status == 401) {
+              console.log("request user to login");
+              this.$emit("login");
+            }
+
+            this.submitting = false;
+
+            this.snackbarMessage = "ServiceEndpoint deleted";
+            this.snackbar = true;
+
+            this.getServiceEndpoints()
+          });
+      } catch (e) {
+        console.error(` failed to delete service, Errors! ${e}`);
+      }
+      }
     },
    
     },
@@ -170,3 +277,5 @@ import axios from 'axios'
     },
   }
 </script>
+
+  <!--   -->
