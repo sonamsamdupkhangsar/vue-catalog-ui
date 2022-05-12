@@ -309,10 +309,18 @@
                                       ></v-text-field>
                                     </v-col>
                                   </v-row>
-                                  
+                                    <v-row>
+                                    <v-col>
+                                      <v-text-field
+                                        v-model="service.apiController"
+                                        label="apiController"
+                                        :counter="1024"
+                                      ></v-text-field>
+                                    </v-col>
+                                  </v-row>
                                   <v-row>
                                     <v-col>
-                                      <service-endpoint :service="service"  :serviceUrl="serviceUrl"></service-endpoint>
+                                      <service-endpoint :service="service"  :serviceUrl="serviceUrl" :application="selectedItem" v-if="service.id"></service-endpoint>
                                     </v-col>
                                   </v-row>
                                  
@@ -354,7 +362,7 @@
                                       <v-btn
                                         v-on:click="deleteService(service)"
                                         :loading="updatingService"
-                                        class="mr-4"
+                                        class="mr-4" v-if="service.id"
                                       >
                                         Delete
                                       </v-btn>
@@ -1220,6 +1228,7 @@ export default {
         accessTokenRequired: false,
         pingIt: false,
         restMethod: "",
+        apiController: ""
       };
       this.newServiceFormDisabled = true;
       this.services.push(serviceItem);
@@ -1249,6 +1258,7 @@ export default {
         accessTokenRequired: service.accessTokenRequired,
         pingIt: service.pingIt,
         restMethod: service.restMethod,
+        apiController: service.apiController
       };
 
       let isNewService = service.id;
@@ -1309,12 +1319,67 @@ export default {
             this.snackbarMessage = "Service deleted";
             this.snackbar = true;
 
-            this.getServices(service.applicationId);
+            this.getServices(service.applicationId)
+
+            this.deleteEndpointsByServiceId(service.id)
+            this.deleteConnectionByServiceId(service.id)
           });
       } catch (e) {
         console.error(` failed to delete service, Errors! ${e}`);
       }
     },
+
+    deleteEndpointsByServiceId: function(serviceId) {
+      console.log("delete serviceEndpoints by serviceId ", serviceId);
+     
+        try {
+          this.submitting = true;
+          axios
+            .delete(this.serviceUrl + "/serviceendpoint/serviceId/" + serviceId)
+            .then((response) => {
+              console.log("response: ", response);
+
+              if (response.status == 401) {
+                console.log("request user to login");
+                this.$emit("login");
+              }
+
+              this.submitting = false;
+
+              this.snackbarMessage = "ServiceEndpoints deleted when service was deleted";
+              this.snackbar = true;              
+            });
+        } catch (e) {
+          console.error(` failed to delete service, Errors! ${e}`);
+        }
+      
+    },
+
+    deleteConnectionByServiceId: function(serviceId) {
+      console.log("delete Connections by serviceId ", serviceId);
+
+        try {
+          this.submitting = true;
+          axios
+            .delete(this.serviceUrl + "/connections/deleteby/serviceId/" + serviceId)
+            .then((response) => {
+              console.log("response: ", response);
+
+              if (response.status == 401) {
+                console.log("request user to login");
+                this.$emit("login");
+              }
+
+              this.submitting = false;
+
+              this.snackbarMessage = "Connections deleted when Service deleted";
+              this.snackbar = true;             
+            });
+        } catch (e) {
+          console.error(` failed to delete connections, Errors! ${e}`);
+        }
+    },
+   
 
     updateConnectedComponent() {
       console.info("update connected component");
@@ -1333,7 +1398,7 @@ export default {
       try {
         this.submitting = true;
         axios
-          .post(this.serviceUrl + "/applications/connection", connectionForm)
+          .post(this.serviceUrl + "/connections", connectionForm)
           .then((response) => {
             if (response.status == 401) {
               console.log("request user to login");
@@ -1404,9 +1469,9 @@ export default {
         axios
           .get(
             this.serviceUrl +
-              "/applications/" +
+              "/connections/applicationId/" +
               this.selectedItem.id +
-              "/connection/component"
+              "/component"
           )
           .then((response) => {
             if (response.status == 401) {
@@ -1518,9 +1583,9 @@ export default {
         axios
           .get(
             this.serviceUrl +
-              "/applications/" +
+              "/connections/applicationId/" +
               this.selectedItem.id +
-              "/connection/app"
+              "/app"
           )
           .then((response) => {
             if (response.status == 401) {

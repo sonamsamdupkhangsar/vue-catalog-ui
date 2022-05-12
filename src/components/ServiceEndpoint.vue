@@ -69,7 +69,33 @@
                                       ></v-text-field>
                                     </v-col>
                                   </v-row>
-                                 
+                                  <v-row>
+                                    <v-col>
+                                      <v-text-field
+                                        v-model="serviceEndpoint.requestBody"
+                                        label="requestBody"
+                                        :counter="1024"
+                                      ></v-text-field>
+                                    </v-col>
+                                  </v-row>
+                                   <v-row>
+                                    <v-col>
+                                      <v-text-field
+                                        v-model="serviceEndpoint.responseBody"
+                                        label="responseBody"
+                                        :counter="1024"
+                                      ></v-text-field>
+                                    </v-col>
+                                  </v-row>
+                                    <v-row>
+                                    <v-col>
+                                      <v-text-field
+                                        v-model="serviceEndpoint.apiMethod"
+                                        label="apiMethod"
+                                        :counter="1024"
+                                      ></v-text-field>
+                                    </v-col>
+                                  </v-row>
                                    <v-row>
                                     <v-col>
                                       <v-btn
@@ -84,10 +110,16 @@
                                       <v-btn
                                         v-on:click="deleteEndpoint(serviceEndpoint)"
                                         :loading="updatingServiceEndpoint"
-                                        class="mr-4"
+                                        class="mr-4" v-if="serviceEndpoint.id"
                                       >
                                         Delete
                                       </v-btn>
+                                    </v-col>
+                                  </v-row>
+
+                                   <v-row>
+                                    <v-col>
+                                      <service-connections :serviceEndpoint="serviceEndpoint"  :serviceUrl="serviceUrl" :application="application"></service-connections>
                                     </v-col>
                                   </v-row>
                                      </v-list-item-content>
@@ -104,30 +136,20 @@
 </template>
 <script>
 import axios from 'axios'
+import ServiceConnections from './ServiceConnections.vue'
 
   export default {
-    props: [ 'serviceUrl', 'service'],
+    components: { ServiceConnections },
+    props: [ 'serviceUrl', 'service', 'application'],
     data() {
       return {
         msg: "hello people",
         count: 0,
         newEndpointFormDisabled: false,
-        updatingServiceEndpoint: false,
-        loading: false,       
-        tab: '',
+        updatingServiceEndpoint: false,        
         lastNotSaved: false,
         serviceEndpointCount: 0,        
         serviceEndpoints: [],        
-        selectedServiceEndpoint : {
-        id: "",
-        name: "",
-        description: "",
-        restMethod: "",
-        endpoint: "",
-        accessTokenRequired: false,
-        pingIt: false,
-        healthEndpoint: false
-      },
         snackbar: false,
         snackbarMessage: '',
       }
@@ -166,8 +188,12 @@ import axios from 'axios'
         name: "",
         description: "",
         restMethod: "",
-        endpoint: ""      
+        endpoint: "",
+        requestBody: "",
+        responseBody: "",
+        apiMethod: ""      
       }
+      
       this.serviceEndpoints.push(serviceEndpoint)
       this.newEndpointFormDisabled = true
       console.log("added new ndpoint to serviceEndpoints: ", this.serviceEndpoints.length)
@@ -236,37 +262,66 @@ import axios from 'axios'
           this.newEndpointFormDisabled = false
       }
       else {
-      try {
-        this.submitting = true;
-        axios
-          .delete(this.serviceUrl + "/serviceendpoint/" + serviceEndpoint.id)
-          .then((response) => {
-            console.log("response: ", response);
+        try {
+          this.submitting = true;
+          axios
+            .delete(this.serviceUrl + "/serviceendpoint/" + serviceEndpoint.id)
+            .then((response) => {
+              console.log("response: ", response);
 
-            if (response.status == 401) {
-              console.log("request user to login");
-              this.$emit("login");
-            }
+              if (response.status == 401) {
+                console.log("request user to login");
+                this.$emit("login");
+              }
 
-            this.submitting = false;
+              this.submitting = false;
 
-            this.snackbarMessage = "ServiceEndpoint deleted";
-            this.snackbar = true;
+              this.snackbarMessage = "ServiceEndpoint deleted";
+              this.snackbar = true;
 
-            this.getServiceEndpoints()
-          });
-      } catch (e) {
-        console.error(` failed to delete service, Errors! ${e}`);
-      }
+              this.getServiceEndpoints()
+              this.deleteConnections(serviceEndpoint)
+            });
+        } catch (e) {
+          console.error(` failed to delete serviceEndpoint, Errors! ${e}`);
+        }
       }
     },
+
+    deleteConnections: function(serviceEndpoint) {
+      console.log("delete serviceConnections by ", serviceEndpoint.id);
+
+
+        try {
+          this.submitting = true;
+          axios
+            .delete(this.serviceUrl + "/connections/deleteby/serviceEndpointId/" + serviceEndpoint.id)
+            .then((response) => {
+              console.log("response: ", response);
+
+              if (response.status == 401) {
+                console.log("request user to login");
+                this.$emit("login");
+              }
+
+              this.submitting = false;
+
+              this.snackbarMessage = "Connections deleted when ServiceEndpoint deleted";
+              this.snackbar = true;             
+            });
+        } catch (e) {
+          console.error(` failed to delete connections, Errors! ${e}`);
+        }
+      }
    
     },
 
     async created () {      
         //this.getServiceStatus(this.appId, this.envId)
         console.log("serviceEndpoint got created for service.id: ", this.service.id, ", service.name: ", this.service.name)
-        this.getServiceEndpoints()
+        if (this.service && this.service.id != "") {
+          this.getServiceEndpoints()
+        }
     },
     mounted() {
       //console.log("mounted, appId: ", this.service.id, ", envId: ", this.envId)      

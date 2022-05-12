@@ -17,6 +17,7 @@
         :expanded.sync="expanded"
         show-expand
         single-expand
+        @item-expanded="getEndpoints"
       >
         <template v-slot:top>
           <v-text-field
@@ -26,10 +27,9 @@
           ></v-text-field>
         </template>
 
-  <template v-slot:[`item.name`]="{ item }">          
-          <span > {{ services.indexOf(item) + 1 }}.
-                      {{ item.name }}</span>
-      </template>
+        <template v-slot:[`item.name`]="{ item }">
+          <span> {{ services.indexOf(item) + 1 }}. {{ item.name }} </span>
+        </template>
 
         <template v-slot:expanded-item="{ headers, item }">
           <td :colspan="headers.length">
@@ -37,11 +37,43 @@
               <div class="col-8 text-right">
                 <v-textarea
                   v-model="item.description"
-                  label="Description" 
+                  label="Description"
                   auto-grow
                   name="input-7-1"
                   filled
                 ></v-textarea>
+              </div>
+              <div class="col-8 text-right">
+                <v-simple-table light>
+                  <template v-slot:default>
+                    <thead>
+                      <tr>
+                        <th class="text-left">Endpoint Name</th>
+                        <th class="text-left">description</th>
+                        <th class="text-left">path</th>
+
+                        <th class="text-left">Rest method</th>
+                        <th class="text-left">Request body</th>
+                        <th class="text-left">Response body</th>                        
+                        <th class="text-left">Api method</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="endpoint in item.serviceEndpoints"
+                        :key="endpoint.id"
+                      >
+                        <td>{{ endpoint.name }}</td>
+                        <td>{{ endpoint.description }}</td>
+                        <td>{{ endpoint.endpoint }}</td>
+                        <td>{{ endpoint.restMethod }}</td>
+                        <td>{{ endpoint.requestBody }}</td>
+                        <td>{{ endpoint.responseBody }}</td>
+                        <td>{{item.apiController }} - {{ endpoint.apiMethod }}</td>
+                      </tr>
+                    </tbody>
+                  </template>
+                </v-simple-table>
               </div>
               <div class="col-8 text-right">
                 <v-text-field
@@ -50,17 +82,14 @@
                 ></v-text-field>
               </div>
               <div class="col-4 text-right">
-               
-                <v-breadcrumbs divider="."> 
-                  <v-breadcrumbs-item 
+                <v-breadcrumbs divider=".">
+                  <v-breadcrumbs-item
                     v-for="e of item.environmentList"
                     :key="e.id"
                   >
-                  
                     {{ e.name }}
                   </v-breadcrumbs-item>
                 </v-breadcrumbs>
-                
               </div>
             </div>
           </td>
@@ -116,14 +145,11 @@ export default {
         value != null &&
         search != null &&
         typeof value === "string" &&
-        value
-          .toString()
-          .toLocaleUpperCase()
-          .indexOf(search) !== -1
+        value.toString().toLocaleUpperCase().indexOf(search) !== -1
       );
     },
 
-    replaceString: function(domain, application, endpoint) {
+    replaceString: function (domain, application, endpoint) {
       if (domain.startsWith("http://${feature--project-name}")) {
         return (
           domain.replace("${feature--project-name}", application.name) +
@@ -216,6 +242,33 @@ export default {
           });
       } catch (e) {
         console.error(`Errors! ${e}`);
+      }
+    },
+
+    getEndpoints({ item }) {
+      console.log("get serviceEndpoints for serviceId: ", item.id);
+
+      try {
+        axios
+          .get(this.serviceUrl + "/serviceendpoint/" + item.id)
+          .then((response) => {
+            if (response.status == 401) {
+              console.log("request user to login");
+              this.$emit("login");
+            }
+
+            //this.serviceEndpoints = response.data
+            // this.service.endpoints = []
+            item.serviceEndpoints = response.data;
+            console.log(
+              "got serviceEndpoints response, totalElements: ",
+              item.serviceEndpoints.length
+            );
+          });
+      } catch (e) {
+        console.error(
+          ` failed to get serviceEndpoints by serviceId, Errors! ${e}`
+        );
       }
     },
   },
